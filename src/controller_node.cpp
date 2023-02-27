@@ -97,7 +97,6 @@ class ControllerNode : public rclcpp::Node {
         Eigen::Vector<double, 7> dq = controller.Dqd(q, Xd, DXd_ff, Rd, W_ff);
 
         this->q = this->q + dq*this->dt;
-        // this->q = {0, M_PI_4, 0, 0, 0, 0, 0};
 
         cout << "================" << endl;
         cout << "t = " << t <<endl;
@@ -114,11 +113,15 @@ class ControllerNode : public rclcpp::Node {
         cout << "dq = " << dq.transpose()*dt << endl;
         cout << endl;
 
+        q_log += q;
+
         /* Update time */
         this->t += this->dt;
         if(this->t >= this->Dt) {
           this->moving = false;
           this->t = 0;
+
+          // cout << "[LOG] Q: " << q_log.transpose()/1000 << endl;
         }
       }
       
@@ -154,12 +157,11 @@ class ControllerNode : public rclcpp::Node {
         this->X[0] = msg->data[0];
         this->X[1] = msg->data[1];
         this->X[2] = msg->data[2];
-        this->O[0] = msg->data[3];
-        this->O[1] = msg->data[4];
-        this->O[2] = msg->data[5];
-        this->O[0] = 0;
-        this->O[1] = 0;
-        this->O[2] = 0;
+        this->O[0] = M_PI*msg->data[3]/180;
+        this->O[1] = M_PI*msg->data[4]/180;
+        this->O[2] = M_PI*msg->data[5]/180;
+
+        q_log = {0, 0, 0, 0, 0, 0, 0};
 
         /* Trajectory Generation */
         this->generateTrajectory();
@@ -215,8 +217,10 @@ class ControllerNode : public rclcpp::Node {
     Eigen::Vector<double, 3> X = {0, 0, 0};
     Eigen::Vector<double, 3> O = {0, 0, 0};
     /* Joint configuration */
-    // Eigen::Vector<double, 7> q = {0, 0, 0, 0, 0, 0, 0}; // OUTSIDE RANGE LIMITS
     Eigen::Vector<double, 7> q = {0, 0, 0, -1.0, 0, 2, 0};
+    /* Log of q values */
+    Eigen::Vector<double, 7> q_log = {0, 0, 0, 0, 0, 0, 0};
+
     /* Time variables */
     double t;
     double Dt;
