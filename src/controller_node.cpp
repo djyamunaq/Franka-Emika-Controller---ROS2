@@ -52,7 +52,7 @@ class ControllerNode : public rclcpp::Node {
 
         /* Get next position */
         Eigen::Vector3d Xp2p = this->p2p.X(t);
-        rm.FwdKin(xOut, ROut, JOut, q);
+        rm.FwdKin(xOut, ROut, JOut, this->q);
         Eigen::Vector3d Xrm = xOut;
 
         /* Velocity vector (x, y, z) in time t */
@@ -110,7 +110,7 @@ class ControllerNode : public rclcpp::Node {
         cout << "Orm = " << Orm.transpose() << endl;
         cout << "Od = " << Od.transpose() << endl;
         cout << "W_ff = " << W_ff.transpose() << endl;
-        cout << "q = " << q.transpose() << endl;
+        cout << "q = " << this->q.transpose() << endl;
         cout << "dq = " << dq.transpose()*dt << endl;
         cout << endl;
 
@@ -157,6 +157,9 @@ class ControllerNode : public rclcpp::Node {
         this->O[0] = msg->data[3];
         this->O[1] = msg->data[4];
         this->O[2] = msg->data[5];
+        this->O[0] = 0;
+        this->O[1] = 0;
+        this->O[2] = 0;
 
         /* Trajectory Generation */
         this->generateTrajectory();
@@ -212,7 +215,8 @@ class ControllerNode : public rclcpp::Node {
     Eigen::Vector<double, 3> X = {0, 0, 0};
     Eigen::Vector<double, 3> O = {0, 0, 0};
     /* Joint configuration */
-    Eigen::Vector<double, 7> q = {0, 0, 0, 0, 0, 0, 0};
+    // Eigen::Vector<double, 7> q = {0, 0, 0, 0, 0, 0, 0}; // OUTSIDE RANGE LIMITS
+    Eigen::Vector<double, 7> q = {0, 0, 0, -1.0, 0, 2, 0};
     /* Time variables */
     double t;
     double Dt;
